@@ -3,15 +3,19 @@
 # for Open Access Monitoring. See also https://doi.org/10.5281/zenodo.1244154
 # The script could be improved with better knowledge of R and other data sources
 
+devtools::install_github("ropensci/rcrossref")
 require(tidyverse)
 require(rcrossref)
 require(roadoi)
 
 # the script require the dump from DOAJ which you find at
+# https://doaj.org/faq#metadata
 # the file name has to be adjusted to the newest version
+
 DOAJ = read_csv("Raw Data/doaj_20180801_1230_utf8.csv")
 # Also the dump from the OpenAPC project is used which can be found at
 # Later Version can contain a direct download from Github
+#https://github.com/OpenAPC/openapc-de/tree/master/data
 openapc = read_csv("Raw Data/apc_de.csv.txt")
 
 #Open Access Color definitons based on COAT. Script can work with up to 4 colors if less colors should be 
@@ -39,8 +43,15 @@ doi.bronze ="10.1073/pnas.1501343112"
 #doi.test <-  doi.gold
 #doi.test <-  doi.green.postprint
 #doi.test <-  doi.green.preprint
-doi.test <- doi.bronze
-#doi.test <-  doi.hybrid
+#doi.test <- doi.bronze
+doi.test <-  doi.hybrid
+# defineing licence types
+# at the moment only links from CC 4.0 are supported. 
+# TODO check if this information can be stored in a external files
+licence.open <- c("CC BY","CC BY SA","http://creativecommons.org/licenses/by/4.0/","https://creativecommons.org/licenses/by/4.0/","https://creativecommons.org/licenses/by-sa/4.0/","https://creativecommons.org/licenses/by-sa/4.0/")
+licence.free <- c("CC BY NC","CC BY NC SA","CC BY ND","CC BY ND NC","http://creativecommons.org/licenses/by-nc-sa/4.0/","http://creativecommons.org/licenses/by-nc-nd/4.0/")   
+
+
 # initialisation of some values
 colnames(DOAJ) <- make.names(colnames(DOAJ))
 doi.j.licence <- NA
@@ -56,8 +67,8 @@ doi.coat.conditions <- 4
 # reading data from Crossref and DOAJ
 CrossRef.data = cr_works(dois = doi.test) %>% .$data
 crossref.issns =  str_split(CrossRef.data$issn,",")
-doi.licence= CrossRef.data$license_url
-
+doi.licence= CrossRef.data$license[[1]]
+doi.licence= doi.licence %>% filter (content.version == "vor") %>% .$URL
 for (i in 1:length(crossref.issns)) {
   journal.doaj <- (crossref.issns[i] %in% DOAJ$Journal.ISSN..print.version. | crossref.issns[i] %in% DOAJ$Journal.EISSN..online.version.| journal.doaj)   
 }
@@ -87,43 +98,83 @@ doi.hybrid = openapc$is_hybrid
 # embargo period is based on host type better would be to retrieve publication.data and embargo.date 
 # but selected data providers are not supporting this metadata fields. 
 
+# Evaluating place of OA and seeting of implicit minimal levels
 if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
   doi.coat.place <- 1
   doi.coat.version <- 1
   #TODO check how values looks for bronze article, maybe set of embargo is not right 
-  doi.coat.embargo <- 1 }
+  # doi.coat.embargo <- 1 
+  }
 if (doi.hosttype == "repository") {
   doi.coat.place <- 2
-  doi.free <- T }
+  doi.free <- T 
+  doi.coat.embargo = 3
+  doi.coat.version = 3
+  }
 
+# Evaluating Condition of OA  
 if (doi.free)  doi.coat.conditions <- 1
 if (!doi.free & !doi.hybrid) doi.coat.conditions <- 2
-if (!doi.free & doi.hybrid) doi.coat.conditions <- 3
+if (doi.hybrid) doi.coat.conditions <- 3
+
+# Evaluation of the licence
+# First from DOAJ  
 if (!is.na(doi.j.licence)) {
-if (doi.j.licence == "CC BY" | doi.j.licence == "CC BY SA") {doi.coat.license <-  1} else { 
-if (doi.j.licence == "CC BY NC" | doi.j.licence == "CC BY NC ND") doi.coat.license <- 2 else {
+if (doi.j.licence == "CC BY" | doi.j.licence == "CC BY SA") {
+  doi.coat.license <-  1
+  doi.coat.version <- 1
+  } else { 
+if (doi.j.licence == "CC BY NC" | doi.j.licence == "CC BY NC ND") 
+  { doi.coat.license <- 2
+  doi.coat.version <- 2 }
+    else {
 if (is.na(doi.j.licence) & is.na(doi.licence)) doi.coat.license <- 3
 }
 }
 }
-# TODO calculation based on licence ref from crossref
-# at the moment rcrossref returns just the first license link, see also https://github.com/ropensci/rcrossref/issues/170
-if (doi.licence == "CC BY" | doi.licence == "CC BY SA") {doi.coat.license <-  1} else { 
-  if (doi.j.licence == "CC BY NC" | doi.j.licence == "CC BY NC ND") doi.coat.license <- 2 else {
-    if (is.na(doi.j.licence) & is.na(doi.licence)) doi.coat.license <- 3
+
+ 
+  
+# calculation based on licence ref from crossref
+
+if (doi.licence %in% licence.open) {
+  doi.coat.license <-  1
+  doi.coat.version <- 1
+  if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
+    doi.coat.embargo <- 1
+  }
+  } else { 
+  if (doi.licence %in% licence.free) {
+    doi.coat.license <- 2
+    doi.coat.version <- 1
+    if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
+      doi.coat.embargo <- 1
+    }
+
+    } else {
+    if (!(is.na(doi.licence))) { doi.coat.license <- 3 }
   }
 }
-}
+
 # TODO calculation based on licence ref from OpenApc(not sure is needed)
 # TODO analyse oaversion data 
 
 
 coat.result <- c(doi.coat.place,doi.coat.license, doi.coat.version, doi.coat.embargo, doi.coat.conditions)
+coat.result
 
 if (all(coat.result <= color1[-1])) {result.color = color1[1]} else {
 if (all(coat.result <= color2[-1])) {result.color = color2[1]} else
 if (all(coat.result <= color3[-1])) {result.color = color3[1]} else  
 {result.color <-  color4[1]}
 }
-result
+doi.coat.place
+doi.coat.license
+doi.coat.version
+doi.coat.embargo
+doi.coat.conditions
+coat.result
 result.color
+
+
+
