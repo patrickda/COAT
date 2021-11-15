@@ -117,7 +117,7 @@ oadoioa <- function (doi.input) {
 # * Year (preferred Print publication year, if not available online publication year )
 
 Cross_ref_oa <- function(doi) { 
-  doi <- "10.1080/01690965.2013.835433"
+#  doi <- "10.1080/01690965.2013.835433"
   lic.url <- "protected"
   lic = c()
   pub.data = NA
@@ -186,7 +186,7 @@ issn.list <- append(cr.result.included$issn,cr.result.temp$issn2)
 issn.list <- unique(issn.list)
 
 # Check four the journals DOAJ Data for OA information
-doaj.result <- lapply(issn.list.DOAJoa) %>%
+doaj.result <- lapply(issn.list, DOAJoa) %>%
   bind_rows()
 
 write_csv(doaj.result,"Data/doaj-result.csv")
@@ -200,7 +200,7 @@ openapc.result <- lapply(doi.list,OpenAPCOA) %>%
 write_csv(openapc.result,"Data/openapc-result.csv")
 
 # Check unpaywall
-oadoi.result <- lapply(doi.list, OpenAPCOA) %>% bind_rows()
+oadoi.result <- lapply(doi.list, oadoioa) %>% bind_rows()
 write_csv(oadoi.result,"Data/oadoi-result.csv")
 
 # Work in progress including of Sherpa Romeo (Test for single journal)
