@@ -75,7 +75,7 @@ result <- result %>% mutate(Licence.source = case_when(
 result <- result %>% mutate(APC = case_when(
    !(is.na(oa.fee))  ~ oa.fee,
    !(is.na(oa.fee2)) ~ oa.fee2, 
-  amount > 0 ~ amount))
+  amount > 0 ~ as.character(amount)))
 result <- result %>% mutate(APC.source = case_when(
   !(is.na(oa.fee))  ~ "DOAJ",
   !(is.na(oa.fee2)) ~ "DOAJ", 
