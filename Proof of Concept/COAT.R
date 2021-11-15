@@ -94,9 +94,16 @@ doi.oaversion <- doi.oalocations$version
 # to avoid problems we use a new variable and initialize it
 doi.is.hybrid <- F
 # Data from OpenAPC
-if (doi.test %in% openapc$doi) {
+##if (doi.test %in% openapc$doi) {
+##  doi.free = F  
+# doi.is.hybrid would contain all data rows here
+# so an if on doi.is.hybrid would test the value of the first row and the result would be wrong
+##  doi.is.hybrid = openapc$is_hybrid
+##}
+openapc_row = filter (openapc, doi == doi.test)
+if (!is.na(openapc_row$doi)) {
   doi.free = F  
-  doi.is.hybrid = openapc$is_hybrid
+  doi.is.hybrid = openapc_row$is_hybrid
 }
 # Calculation of publication COAT based on the retrieved values
 # embargo period is based on host type, better would be to retrieve publication.data and embargo.date 
