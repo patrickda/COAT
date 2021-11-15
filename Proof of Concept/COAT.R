@@ -45,19 +45,19 @@ doi.bronze ="10.1073/pnas.1501343112"
 #doi.test <-  doi.green.preprint
 #doi.test <- doi.bronze
 doi.test <-  doi.hybrid
-# defineing licence types
+# defining licence types
 # at the moment only links from CC 4.0 are supported. 
 # TODO check if this information can be stored in a external files
 licence.open <- c("CC BY","CC BY SA","http://creativecommons.org/licenses/by/4.0/","https://creativecommons.org/licenses/by/4.0/","https://creativecommons.org/licenses/by-sa/4.0/","https://creativecommons.org/licenses/by-sa/4.0/")
 licence.free <- c("CC BY NC","CC BY NC SA","CC BY ND","CC BY ND NC","http://creativecommons.org/licenses/by-nc-sa/4.0/","http://creativecommons.org/licenses/by-nc-nd/4.0/")   
 
 
-# initialisation of some values
+# initialization of some values
 colnames(DOAJ) <- make.names(colnames(DOAJ))
 doi.j.licence <- NA
 doi.free <- F
 journal.doaj <-  F
-# initializazion COAT with lowest levels
+# initialization COAT with lowest levels
 doi.coat.place <- 4
 doi.coat.license <- 4
 doi.coat.version <- 4
@@ -91,18 +91,18 @@ doi.oaversion <- doi.oalocations$version
 }
 # Data from OpenAPC
 if (doi.test %in% openapc$doi) {
-doi.free = F  
-doi.hybrid = openapc$is_hybrid
+  doi.free = F  
+  doi.hybrid = openapc$is_hybrid
 }
-# Calculation of publication COAT based on the retreaved vallues
-# embargo period is based on host type better would be to retrieve publication.data and embargo.date 
+# Calculation of publication COAT based on the retrieved values
+# embargo period is based on host type, better would be to retrieve publication.data and embargo.date 
 # but selected data providers are not supporting this metadata fields. 
 
-# Evaluating place of OA and seeting of implicit minimal levels
+# Evaluating place of OA and setting of implicit minimal levels
 if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
   doi.coat.place <- 1
   doi.coat.version <- 1
-  #TODO check how values looks for bronze article, maybe set of embargo is not right 
+  #TODO check how values look for bronze article, maybe set of embargo is not right 
   # doi.coat.embargo <- 1 
   }
 if (doi.hosttype == "repository") {
@@ -120,17 +120,17 @@ if (doi.hybrid) doi.coat.conditions <- 3
 # Evaluation of the licence
 # First from DOAJ  
 if (!is.na(doi.j.licence)) {
-if (doi.j.licence == "CC BY" | doi.j.licence == "CC BY SA") {
-  doi.coat.license <-  1
-  doi.coat.version <- 1
+  if (doi.j.licence == "CC BY" | doi.j.licence == "CC BY SA") {
+    doi.coat.license <-  1
+    doi.coat.version <- 1
   } else { 
-if (doi.j.licence == "CC BY NC" | doi.j.licence == "CC BY NC ND") 
-  { doi.coat.license <- 2
-  doi.coat.version <- 2 }
-    else {
-if (is.na(doi.j.licence) & is.na(doi.licence)) doi.coat.license <- 3
-}
-}
+    if (doi.j.licence == "CC BY NC" | doi.j.licence == "CC BY NC ND") { 
+      doi.coat.license <- 2
+      doi.coat.version <- 2 
+    } else {
+      if (is.na(doi.j.licence) & is.na(doi.licence)) doi.coat.license <- 3
+    }
+  }
 }
 
  
@@ -143,20 +143,19 @@ if (doi.licence %in% licence.open) {
   if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
     doi.coat.embargo <- 1
   }
-  } else { 
+} else { 
   if (doi.licence %in% licence.free) {
     doi.coat.license <- 2
     doi.coat.version <- 1
     if (doi.hosttype == "journal" | doi.hosttype == "publisher" ) {
       doi.coat.embargo <- 1
     }
-
-    } else {
+  } else {
     if (!(is.na(doi.licence))) { doi.coat.license <- 3 }
   }
 }
 
-# TODO calculation based on licence ref from OpenApc(not sure is needed)
+# TODO calculation based on licence ref from OpenApc(not sure if needed)
 # TODO analyse oaversion data 
 
 
@@ -164,10 +163,12 @@ coat.result <- c(doi.coat.place,doi.coat.license, doi.coat.version, doi.coat.emb
 coat.result
 
 if (all(coat.result <= color1[-1])) {result.color = color1[1]} else {
-if (all(coat.result <= color2[-1])) {result.color = color2[1]} else
-if (all(coat.result <= color3[-1])) {result.color = color3[1]} else  
-{result.color <-  color4[1]}
+  if (all(coat.result <= color2[-1])) {result.color = color2[1]} else
+  if (all(coat.result <= color3[-1])) {result.color = color3[1]} else {
+    result.color <-  color4[1]
+  }
 }
+
 doi.coat.place
 doi.coat.license
 doi.coat.version
