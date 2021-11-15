@@ -74,6 +74,9 @@ for (i in 1:length(crossref.issns)) {
 }
 
 if (journal.doaj) {
+  #TODO problematic inconsistency ?
+  # journal.doaj was based on search for ISSN and EISSN, but here only EISSN is used for filtering
+  # suggestion: use both ISSN and EISSN for filtering and check the result instead of using journal.doaj
   oajournal <- DOAJ %>% filter(Journal.EISSN..online.version. == crossref.issns[[1]])
   if (is.na(doi.licence)) {doi.j.licence <- oajournal$Journal.license}
   #todo check if no submission fee is asked for
