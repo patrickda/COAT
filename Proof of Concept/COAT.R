@@ -89,10 +89,14 @@ doi.hosttype <- doi.oalocations$host_type
 doi.oaurl <- doi.oalocations$url_for_landing_page
 doi.oaversion <- doi.oalocations$version
 }
+
+# doi.hybrid was already defined above
+# to avoid problems we use a new variable and initialize it
+doi.is.hybrid <- F
 # Data from OpenAPC
 if (doi.test %in% openapc$doi) {
   doi.free = F  
-  doi.hybrid = openapc$is_hybrid
+  doi.is.hybrid = openapc$is_hybrid
 }
 # Calculation of publication COAT based on the retrieved values
 # embargo period is based on host type, better would be to retrieve publication.data and embargo.date 
@@ -114,8 +118,8 @@ if (doi.hosttype == "repository") {
 
 # Evaluating Condition of OA  
 if (doi.free)  doi.coat.conditions <- 1
-if (!doi.free & !doi.hybrid) doi.coat.conditions <- 2
-if (doi.hybrid) doi.coat.conditions <- 3
+if (!doi.free & !doi.is.hybrid) doi.coat.conditions <- 2
+if (doi.is.hybrid) doi.coat.conditions <- 3
 
 # Evaluation of the licence
 # First from DOAJ  
