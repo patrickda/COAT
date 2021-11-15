@@ -132,7 +132,10 @@ if (!is.na(doi.j.licence)) {
       doi.coat.license <- 2
       doi.coat.version <- 2 
     } else {
-      if (is.na(doi.j.licence) & is.na(doi.licence)) doi.coat.license <- 3
+      #TODO is.na(doi.j.licence) can never be true here, 
+      # because the negated condition was checked in the outer if
+      if (is.na(doi.j.licence) & is.na(doi.licence)) 
+        doi.coat.license <- 3
     }
   }
 }
