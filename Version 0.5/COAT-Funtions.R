@@ -68,15 +68,15 @@ DOAJoa <- function(issn) {
 
 OpenAPCOA <- function(doi.input) {
  in.openapc <- F
- ammount <- 0
+ amount <- 0
  hybrid <- F
  if (doi.input %in% openapc$doi) {
    article <- openapc %>% filter (doi == doi.input)
-   ammount <-  article$euro 
+   amount <-  article$euro 
    hybrid = article$is_hybrid
    in.openapc <- T
  }
- tibble(doi.input,in.openapc,hybrid,ammount)
+ tibble(doi.input,in.openapc,hybrid,amount)
 }
 
 # Function to extract OA parameter from OADOI for an DOI
@@ -166,7 +166,7 @@ colnames(DOAJ) <- make.names(colnames(DOAJ))
 # Check which fields are part of the input.data
 doi.list <- input.data %>% .$DOI %>% unique() 
 if (is.null(input.data$Year)) input.year <- F else input.year <- T
-if (is.null(input.data$Insitution)) input.insituion <- F else input.insituion <- T
+if (is.null(input.data$Institution)) input.institution <- F else input.institution <- T
 if (is.null(input.data$Country)) input.country <- F else input.country <- T
 
 
