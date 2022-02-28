@@ -27,7 +27,7 @@ require(httr)
 # Download  last version of required data 
 download.file("https://doaj.org/csv", destfile = "Data/DOAJ.csv")
 download.file("https://github.com/OpenAPC/openapc-de/raw/master/data/apc_de.csv", destfile = "Data/OpenAPC.csv")
-download.file("https://github.com/OpenAPC/openapc-de/raw/master/data/offsetting/offsetting.csv", destfile = "Data/Offsetting.csv")
+#download.file("https://github.com/OpenAPC/openapc-de/raw/master/data/offsetting/offsetting.csv", destfile = "Data/Offsetting.csv")
 
 # Input data
 # Requires a csv file with the following information
@@ -160,7 +160,7 @@ cr.result <- NA
 # Reading the used Data Files in the global environment
 DOAJ = read_csv("Data/DOAJ.csv")
 openapc = read_csv("Data/OpenAPC.csv")
-openapc.offsetting = read_csv("Data/Offsetting.csv")
+#openapc.offsetting = read_csv("Data/Offsetting.csv")
 colnames(DOAJ) <- make.names(colnames(DOAJ))
 
 # Check which fields are part of the input.data
@@ -225,4 +225,4 @@ sherpa.romeo <- function (ISSN) {
 
   tibble(ISSN,embargo.time,embargo.timeframe)
 }
-sherpa.romeo("1095-9203")
+#sherpa.romeo("1095-9203")
