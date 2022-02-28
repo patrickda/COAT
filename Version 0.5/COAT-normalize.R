@@ -2,7 +2,7 @@
 # TODO simply output with the fields
 # - DOI
 # - Year
-# - Insitution (if provided in input)
+# - Institution (if provided in input)
 # - Country (if provided in input)
 # - Type (from CrossRef)
 # - Licence URL
@@ -21,10 +21,8 @@
 # - Link to OA Version
 # - Place of OA
 # - Place of OA Source
+# - is.hybrid
 # - Timestamp
-# - Year
-# - Institution
-# - Country
 # - TODO journal.in.doaj
 # Note: Output will be long data
 
@@ -36,12 +34,13 @@ cr.result <- read_csv("Data/cr.result.csv")
 doaj.result <- read_csv("Data/doaj-result.csv")
 openapc.result <- read_csv("Data/openapc-result.csv")
 oadoi.result <- read_csv("Data/oadoi-result.csv")
+# version conversion is not used
 version.from <- c("draft", "submittedVersion","acceptedVersion", "publishedVersion", "updatedVersion", "PublisherVersion")
 version.to <- c("info:eu-repo/semantics/draft","info:eu-repo/semantics/submittedVersion","info:eu-repo/semantics/acceptedVersion", "info:eu-repo/semantics/publishedVersion","info:eu-repo/semantics/updatedVersion", "info:eu-repo/semantics/publishedVersion")
 
 licence.from <- c("CC BY","CC BY-NC","CC BY-ND","CC BY-NC-ND")
 licence.to <- c("https://creativecommons.org/licenses/by/4.0/","https://creativecommons.org/licenses/by-nc/4.0","https://creativecommons.org/licenses/by-nd/4.0/","https://creativecommons.org/licenses/by-nc-nd/4.0/")
-# Joining all informations is one table
+# Joining all information is one table
 
 result <- NA
 result <- left_join(input.data, cr.result, by= c("DOI" = "doi"))
@@ -77,9 +76,10 @@ result <- result %>% mutate(Licence.source = case_when(
   lic.url == "protected" & !is.na(DOAJ.licence) ~ "DOAJ", 
   is.na(lic.url) ~ "none",
   lic.url != "protected" ~ "CrossRef"))
+# oa.fee has to be converted because dependent on the input data column oa.fee may be of type logical
 result <- result %>% mutate(APC = case_when(
-  !(is.na(oa.fee))  ~ oa.fee,
-  !(is.na(oa.fee2)) ~ oa.fee2, 
+  !(is.na(oa.fee))  ~ as.numeric(oa.fee),
+  !(is.na(oa.fee2)) ~ as.numeric(oa.fee2), 
   amount > 0 ~ amount))
 result <- result %>% mutate(APC.source = case_when(
   !(is.na(oa.fee))  ~ "DOAJ",
@@ -93,13 +93,15 @@ result <- result %>% mutate(is.hybrid.source = case_when(
   !(is.na(oa.fee))  ~ "DOAJ",
   !(is.na(oa.fee2)) ~ "DOAJ", 
   amount > 0 ~ "OpenAPC"))
+
 result <- result %>% mutate(version = case_when(
-  DOAJ.result ~ "PublisherVersion",
+  DOAJ.result ~ "publishedVersion",
   !(is.na(doi.oaversion))  ~ doi.oaversion))
 
 result <- result %>% mutate(version.source = case_when(
   DOAJ.result ~ "DOAJ",
   !(is.na(doi.oaversion))  ~ "unpaywall"))
+
 result <- result %>% mutate(oa.place.source = case_when(
   !(is.na(doi.hosttype))  ~ "unpaywall"))
 result <- result %>% mutate(embargo.time = case_when(
@@ -131,8 +133,8 @@ result <- result %>% mutate(hybrid = case_when(
 
 result$publication.date <- NA
 result$embargo.date <- NA
-result.names <- c("identifier","year","institution","country", "licence.url","licence.source","version","version.source","APC","APC.source","embargo.time","publication.data","embargo.date","embargo.source","oaversion.link","oa.place","oa.place.source","timestamp")
-result.c <- result %>% select(doi, Year, Institution, Country,Licence,Licence.source,doi.oaversion,version.source,APC, APC.source, embargo.time,publication.date,embargo.date,embargo.source, doi.oaurl,doi.hosttype,doi.hosttype,oa.place.source) %>% mutate (timestamp = Sys.time())
+result.names <- c("identifier","year","institution","country", "licence.url","licence.source","version","version.source","APC","APC.source","embargo.time","publication.data","embargo.date","embargo.source","oaversion.link","oa.place","oa.place.source","is.hybrid", "timestamp")
+result.c <- result %>% select(DOI, Year, Institution, Country,Licence,Licence.source,doi.oaversion,version.source,APC, APC.source, embargo.time,publication.date,embargo.date,embargo.source, doi.oaurl,doi.hosttype,doi.hosttype,oa.place.source, is.hybrid) %>% mutate (timestamp = Sys.time())
 colnames(result.c) <- result.names
 write_csv(result.c,"Data/oa-report-normalized.csv")
 result$version %>% unique()
